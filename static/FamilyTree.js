@@ -1,4 +1,3 @@
-var fTree = [{ id: 1, pids: [2], name: "King George VI", img: "https://cdn.balkan.app/shared/f1.png", gender: 'male' }]
 
 function getTree() {
 
@@ -7,9 +6,16 @@ function getTree() {
 
             for (let i = 0; i < response.data.length; i++) {
 
-                data = response.data[i]
-                fTree.append = ({ name: data[0], id: data[5], place: [3], marital_status: [4], born: [1], died: [2] });
+                datar = response.data[i]
+                if (datar[2] != null) {
+
+                    fTree.push({ id: datar[5], Name: datar[0], Born: new Date(datar[1]["_Date__year"], datar[1]["_Date__month"], datar[1]["_Date__day"]), Died: new Date((datar[2]["_Date__year"], datar[2]["_Date__month"], datar[2]["_Date__day"])), Place: datar[3], Married: datar[4] });
+                } else {
+
+                    fTree.push({ id: datar[5], Name: datar[0], Born: new Date(datar[1]["_Date__year"], datar[1]["_Date__month"], datar[1]["_Date__day"]), Place: datar[3], Married: datar[4] });
+                }
             }
+            console.log(fTree)
         })
 
         .catch(function (error) {
@@ -18,12 +24,9 @@ function getTree() {
         })
 }
 getTree()
-var chart = new FamilyTree(document.getElementById("tree"), {
-    mouseScrool: FamilyTree.none,
-    siblingSeparation: 120,
-    template: 'john',
+var chart = new OrgChart(document.getElementById("tree"), {
     nodeBinding: {
-        field_0: "name"
-    }
+        field_0: "Name"
+    },
+    nodes: fTree
 });
-chart.load(fTree);
