@@ -25,8 +25,3 @@ def render_temp(request: Request):
 def get_tree():
 
     return db.get_tree()
-
-@app.get("/get_relationships")
-def get_relationships():
-
-    return db.get_relationships()

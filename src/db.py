@@ -50,6 +50,17 @@ class App:
 
         return deduplicate_by_ip(arr)
 
+    def get_married_nodes(self, command):
+
+        arr = []
+        with self.driver.session() as session:
+            res = session.execute_write(self._run_command, command)
+            for line in res:
+                
+                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["id"], line["id2"]])
+
+        return deduplicate_by_ip(arr)
+
 driver = App("neo4j+s://7fac8116.databases.neo4j.io", "neo4j", "RSV5Kinf7IS6yjkeHS6IepdROANLalVWENFAD0gJSmU")
 
 
@@ -59,9 +70,16 @@ def get_tree():
 
     b = driver.get_nodes("MATCH (p: Person) MATCH (p)<-[:CHILD_OF]-(p2: Person) MATCH (p)<-[:CHILD_OF]-(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3")
 
+    c = driver.get_married_nodes("MATCH (p)<-[:MARRIED_TO]-(p2: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2")
+
+    d = driver.get_married_nodes("MATCH (p)-[:MARRIED_TO]->(p2: Person)RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2")
+
+    comb2 = c + d
+    comb2 = deduplicate_by_ip(comb2)
+
     comb = a + b
     comb = deduplicate_by_ip(comb)
-    return comb
+    return deduplicate_by_ip(comb + comb2)
 driver.close()
 
 print(get_tree())
