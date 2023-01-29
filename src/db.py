@@ -49,7 +49,16 @@ class App:
                 arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["id"], line["id2"], line["id3"]])
 
         return deduplicate_by_ip(arr)
+    def test(self, command):
+        
+        arr = []
+        with self.driver.session() as session:
+            res = session.execute_write(self._run_command, command)
+            for line in res:
+                
+                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["ID"], line["PID"]])
 
+        return deduplicate_by_ip(arr)
     def get_married_nodes(self, command):
 
         arr = []
@@ -57,29 +66,36 @@ class App:
             res = session.execute_write(self._run_command, command)
             for line in res:
                 
-                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["id"], line["id2"]])
+                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["id"], line["id2"], line["PID"]])
 
         return deduplicate_by_ip(arr)
 
+    def delete_temp_nodes(self):
+
+        with self.driver.session() as session:
+            res = session.execute_write(self._run_command, "MATCH (t: TempNode) DELETE (t)")
 driver = App("neo4j+s://7fac8116.databases.neo4j.io", "neo4j", "RSV5Kinf7IS6yjkeHS6IepdROANLalVWENFAD0gJSmU")
 
 
 def get_tree():
 
-    a = driver.get_nodes("MATCH (p: Person) MATCH (p)-[:CHILD_OF]->(p2: Person) MATCH (p)-[:CHILD_OF]->(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3")
+    a = driver.test("""
+    MATCH (p: Person) 
+    MATCH (p)-[:CHILD_OF]->(p2: Person)
+    MATCH (p)-[:CHILD_OF]->(p3: Person) 
+    MATCH (p)-[:MARRIED_TO]->(p4: Person)
+    MERGE (t: TempNode {idArr: [ID(p), ID(p2), ID(p3), ID(p4)]})
+    RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, t.idArr as ID, p.ID as PID
+    """)
 
-    b = driver.get_nodes("MATCH (p: Person) MATCH (p)<-[:CHILD_OF]-(p2: Person) MATCH (p)<-[:CHILD_OF]-(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3")
+    b = driver.get_nodes("MATCH (p: Person) MATCH (p)-[:CHILD_OF]->(p2: Person) MATCH (p)-[:CHILD_OF]->(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3, p.id AS PID")
 
-    c = driver.get_married_nodes("MATCH (p)<-[:MARRIED_TO]-(p2: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2")
+    c = driver.get_nodes("MATCH (p: Person) MATCH (p)<-[:CHILD_OF]-(p2: Person) MATCH (p)<-[:CHILD_OF]-(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3, p.id AS PID")
 
-    d = driver.get_married_nodes("MATCH (p)-[:MARRIED_TO]->(p2: Person)RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2")
+    driver.delete_temp_nodes()
 
-    comb2 = c + d
-    comb2 = deduplicate_by_ip(comb2)
+    return deduplicate_by_ip(a + b + c)
 
-    comb = a + b
-    comb = deduplicate_by_ip(comb)
-    return deduplicate_by_ip(comb + comb2)
 driver.close()
 
 print(get_tree())
