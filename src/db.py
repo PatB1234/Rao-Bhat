@@ -88,9 +88,16 @@ class App:
             res = session.execute_write(self._run_command, command)
             for line in res:
 
-                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["parents"], line["id"]])
+                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["parents"], line["id"], line["gender"]])
 
         return arr
+
+    def add_member(self, name, mid, fid, pid, gender, married, place):
+
+        with self.driver.session() as session:
+            
+            jsonData = f'name: {name}, gender: {gender}, marraige: {married}, marriedTo: {[mid, fid]}, parents: {[pid]}, place: {place}'
+            session = session.execute_write(self.run_command, "CREATE (p: Person " + jsonData + " )")
 
     def married(self, command) :
 
@@ -99,39 +106,76 @@ class App:
             res = session.execute_write(self._run_command, command)
             for line in res:
 
-                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["parents"], line["marriedTo"], line["id"]])
+                arr.append([line["name"], line["born"], line["died"], line["place"], line["marraige"], line["parents"], line["marriedTo"], line["id"], line["gender"]])
         
         return arr
-driver = App("neo4j+s://7fac8116.databases.neo4j.io", "neo4j", "RSV5Kinf7IS6yjkeHS6IepdROANLalVWENFAD0gJSmU")
+driver = App("neo4j+s://f5963dab.databases.neo4j.io", "neo4j", "3PdgWqKy110mz3ztpK37BdSOj89fsRUrUJ79cRyXcxU")
 
+def edit_node(gender, name, marriedTo, mid, fid, place, marraige):
 
-# def get_tree():
+    driver.run_command(f"MATCH (p: Person) WHERE ID(p)= SET p.gender = '{gender}', p.name = '{name}', p.marriedTo = {[marriedTo]}, p.parents = {[mid, fid]}, p.place = '{place}', p.marraige = {marraige}")
 
-#     a = driver.test("""
-#     MATCH (p: Person) 
-#     MATCH (p)-[:CHILD_OF]->(p2: Person)
-#     MATCH (p)-[:CHILD_OF]->(p3: Person) 
-#     MATCH (p)-[:MARRIED_TO]->(p4: Person)
-#     MERGE (t: TempNode {idArr: [ID(p), ID(p2), ID(p3), ID(p4)]})
-#     RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, t.idArr as ID, p.ID as PID
-#     """)
-
-#     b = driver.get_nodes("MATCH (p: Person) MATCH (p)-[:CHILD_OF]->(p2: Person) MATCH (p)-[:CHILD_OF]->(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3, p.id AS PID")
-
-#     c = driver.get_nodes("MATCH (p: Person) MATCH (p)<-[:CHILD_OF]-(p2: Person) MATCH (p)<-[:CHILD_OF]-(p3: Person) RETURN p.marraige AS marraige, p.name AS name, p.born AS born, p.died AS died, p.place AS place, ID(p) AS id, ID(p2) AS id2, ID(p3) AS id3, p.id AS PID")
-
-#     driver.delete_temp_nodes()
-
-#     return deduplicate_by_ip(a + b + c)
 
 
 def get_tree():
 
-    a = driver.non_married("MATCH (p: Person) WHERE p.marraige = False RETURN p.name AS name, p.born AS born, p.died AS died, p.place AS place, p.marraige AS marraige, p.parents AS parents, ID(p) AS id")
+    fixedArr = []
 
-    b = driver.married("MATCH (p: Person) WHERE p.marraige = True RETURN p.name AS name, p.born AS born, p.died AS died, p.place AS place, p.marraige AS marraige, p.parents AS parents, p.marriedTo AS marriedTo, ID(p) AS id")
+    a_non = driver.non_married("MATCH (p: Person) WHERE p.marraige = False RETURN p.name AS name, toString(p.born) AS born, toString(p.died) AS died, p.place AS place, p.marraige AS marraige, p.parents AS parents, ID(p) AS id, p.gender AS gender")
 
-    return a + b
+    for data in a_non:
+
+
+        # if (data[2] == None):
+
+        if (data[5] == None):
+            
+            #, "Born": data[1], "Marraige": data[4], 
+            fixedArr.append({"id": data[6], "name": data[0], "Place": data[3], "gender": data[7].lower(), "photo": "", "addr": "", "title": f"ID: {data[6]}"})
+        else: 
+
+            #, "Born": data[1], "Marraige": data[4], "Place": data[3], 
+            fixedArr.append({"id": data[6], "name": data[0], "mid": data[5][0], "fid": data[5][1], "gender": data[7].lower(), "photo": "", "addr": "", "title": f"ID: {data[6]}"})
+        # else:
+
+        #     if (data[5] == None):
+
+        #         #, "Born": data[1], "Died": data[2], "Place": data[3], "Marraige": data[4], 
+        #         fixedArr.append({"id": data[6], "name": data[0], "gender": data[7].lower(), "photo": "", "addr": ""})
+        #     else: 
+
+        #         #, "Born": data[1], "Died": data[2], "Place": data[3], "Marraige": data[4]
+        #         fixedArr.append({"id": data[6], "name": data[0], "mid": data[5][0], "fid": data[5][1], "gender": data[7].lower(), "photo": "", "addr": ""})
+
+
+
+    b = driver.married("MATCH (p: Person) WHERE p.marraige = True RETURN p.name AS name, toString(p.born) AS born, toString(p.died) AS died, p.place AS place, p.marraige AS marraige, p.parents AS parents, p.marriedTo AS marriedTo, ID(p) AS id, p.gender AS gender")
+
+    for data in b:
+
+        # if (data[2] == None):
+
+        if (data[5] == None):
+
+            #, "Born": data[1], "Place": data[3], "Marraige": data[4]
+            fixedArr.append({"id": data[7], "name": data[0], "pid": data[6][0], "gender": data[8].lower(), "photo": "", "addr": "", "title": f"ID: {data[7]}"})
+        else: 
+
+            #, "Born": data[1], "Place": data[3], "Marraige": data[4] 
+            fixedArr.append({"id": data[7], "name": data[0], "mid": data[5][0], "fid": data[5][1], "pid": data[6][0], "gender": data[8].lower(), "photo": "", "addr": "", "title": f"ID: {data[7]}"})
+    # else:
+
+        #     if (data[5] == None):
+
+        #         #, "Born": data[1], "Died": data[2], "Place": data[3], "Marraige": data[4]
+        #         fixedArr.append({"id": data[7], "name": data[0], "pid": data[6][0], "gender": data[8].lower(), "photo": "", "addr": ""})
+        #     else: 
+
+        #         #, "Born": data[1], "Died": data[2], "Place": data[3], "Marraige": data[4],
+        #         fixedArr.append({"id": data[7], "name": data[0], "mid": data[5][0], "fid": data[5][1], "pid": data[6][0], "gender": data[8].lower(), "photo": "", "addr": ""})
+
+    return fixedArr
+
 
 driver.close()
 

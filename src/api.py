@@ -21,7 +21,86 @@ def render_temp(request: Request):
 
     return templates.TemplateResponse("FamilyTree.html", {"request": request})
 
+@app.get("/get_add_member")
+def get_add_member(request: Request):
+
+    return templates.TemplateResponse("addMember.html", {"request": request})
+
 @app.get("/get_tree")
 def get_tree():
-
+     
     return db.get_tree()
+
+@app.post("/add_member")
+def add_member(name: str = Form(...), mid: int = Form(...), fid: int = Form(...), pid: int = Form(...), married: str = Form(...), gender: str = Form(...), place: str = Form(...)):
+
+        tMid = mid
+        tFid = fid
+        tPid = pid
+
+        if (married != "on"):
+
+            married = False
+            if (mid < 0):
+                    
+                    tMid = None
+                    tFid = None
+                    tPid = None
+                
+            else: 
+
+                tPid = None
+
+
+        else:
+                
+                married = True
+
+                if (mid < 0):
+
+                    #, "Born": data[1], "Place": data[3], "Marraige": data[4]
+                    tMid = None
+                    tFid = None
+                else: 
+
+                    #, "Born": data[1], "Place": data[3], "Marraige": data[4] 
+                    pass
+
+        return db.App.add_member(name, tMid, tFid, tPid, gender, married, place)
+
+@app.post("/edit_node")
+def edit_node(name: str = Form(...), mid: int = Form(...), fid: int = Form(...), pid: int = Form(...), married: str = Form(...), gender: str = Form(...), place: str = Form(...)):
+     
+        tMid = mid
+        tFid = fid
+        tPid = pid
+
+        if (married != "on"):
+
+            married = False
+            if (mid < 0):
+                    
+                    tMid = None
+                    tFid = None
+                    tPid = None
+                
+            else: 
+
+                tPid = None
+
+
+        else:
+                
+                married = True
+
+                if (mid < 0):
+
+                    #, "Born": data[1], "Place": data[3], "Marraige": data[4]
+                    tMid = None
+                    tFid = None
+                else: 
+
+                    #, "Born": data[1], "Place": data[3], "Marraige": data[4] 
+                    pass
+
+        return db.edit_node(gender, name, tPid, tMid, tFid, place, married)
