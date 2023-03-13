@@ -96,8 +96,8 @@ class App:
 
         with self.driver.session() as session:
             
-            jsonData = f'name: {name}, gender: {gender}, marraige: {married}, marriedTo: {[mid, fid]}, parents: {[pid]}, place: {place}'
-            session = session.execute_write(self.run_command, "CREATE (p: Person " + jsonData + " )")
+            jsonData = f'name: "{name}", gender: "{gender}", marraige: {married}, parents: ["{mid}", "{fid}"], marriedTo: ["{pid}"], place: "{place}"'
+            session = session.execute_write(self._run_command, "CREATE (p: Person {" + jsonData + "} )")
 
     def married(self, command) :
 
@@ -111,30 +111,57 @@ class App:
         return arr
 driver = App("neo4j+s://f5963dab.databases.neo4j.io", "neo4j", "3PdgWqKy110mz3ztpK37BdSOj89fsRUrUJ79cRyXcxU")
 
-def edit_node(gender, name, marriedTo, mid, fid, place, marraige):
+def edit_node(ids, gender, name, marriedTo, mid, fid, place, marraige):
 
-    driver.run_command(f"MATCH (p: Person) WHERE ID(p)= SET p.gender = '{gender}', p.name = '{name}', p.marriedTo = {[marriedTo]}, p.parents = {[mid, fid]}, p.place = '{place}', p.marraige = {marraige}")
+    driver.run_command(f"MATCH (p: Person WHERE ID(p) = {ids}) SET p.gender = '{gender}', p.name = '{name}', p.marriedTo = {[marriedTo]}, p.parents = ['{mid}', '{fid}'], p.place = '{place}', p.marraige = {marraige}")
 
+def add_human(name, mid, fid, pid, gender, married, place):
 
+    driver.add_member(name, mid, fid, pid, gender, married, place)
 
 def get_tree():
 
     fixedArr = []
 
     a_non = driver.non_married("MATCH (p: Person) WHERE p.marraige = False RETURN p.name AS name, toString(p.born) AS born, toString(p.died) AS died, p.place AS place, p.marraige AS marraige, p.parents AS parents, ID(p) AS id, p.gender AS gender")
+    fA1 = []
 
     for data in a_non:
+        print(data)
+        if (data[5] == None or data[6] == None):
+            
+            fA1.append(data)
+        else:
+
+            tFid = data[5][0]
+            tMid = data[5][1]
+
+            if (data[5][0] == None or data[5][1] == None):
+
+                tMid = None
+                tFid = None
+
+                fA1.append([data[0], data[1], data[2], data[3], None, None, data[6], data[7]])
+            else:
+
+                fA1.append([data[0], data[1], data[2], data[3], None, [tMid, tFid], data[6], data[7]])
+
+
+
+
+    for data in fA1:
 
 
         # if (data[2] == None):
 
-        if (data[5] == None):
+        if (data[5] == "None" or data[5] == None):
             
             #, "Born": data[1], "Marraige": data[4], 
             fixedArr.append({"id": data[6], "name": data[0], "Place": data[3], "gender": data[7].lower(), "photo": "", "addr": "", "title": f"ID: {data[6]}"})
         else: 
 
             #, "Born": data[1], "Marraige": data[4], "Place": data[3], 
+            print(data)
             fixedArr.append({"id": data[6], "name": data[0], "mid": data[5][0], "fid": data[5][1], "gender": data[7].lower(), "photo": "", "addr": "", "title": f"ID: {data[6]}"})
         # else:
 
@@ -151,17 +178,45 @@ def get_tree():
 
     b = driver.married("MATCH (p: Person) WHERE p.marraige = True RETURN p.name AS name, toString(p.born) AS born, toString(p.died) AS died, p.place AS place, p.marraige AS marraige, p.parents AS parents, p.marriedTo AS marriedTo, ID(p) AS id, p.gender AS gender")
 
+    fA2 = []
+
     for data in b:
+        
+        print(data)
+        if (data[5] == None or data[6] == None):
+                        
+            fA2.append(data)
+        else:
+
+            tFid = data[5][0]
+            tMid = data[5][1]
+            tPid = data[4]
+            if data[4] == ["None"]:
+                
+                    tPid = None
+            if (data[5][0] == None or data[5][1] == None):
+
+                tMid = None
+                tFid = None
+
+                fA2.append([data[0], data[1], data[2], data[3], tPid, None, data[6], data[7], data[8]])
+            else:
+
+                fA2.append([data[0], data[1], data[2], data[3], tPid, [tMid, tFid], data[6], data[7], data[8]])
+
+
+    for data in fA2:
 
         # if (data[2] == None):
 
-        if (data[5] == None):
+        if (data[5] == "None" or data[5] == None):
 
             #, "Born": data[1], "Place": data[3], "Marraige": data[4]
             fixedArr.append({"id": data[7], "name": data[0], "pid": data[6][0], "gender": data[8].lower(), "photo": "", "addr": "", "title": f"ID: {data[7]}"})
         else: 
 
             #, "Born": data[1], "Place": data[3], "Marraige": data[4] 
+            print(data)
             fixedArr.append({"id": data[7], "name": data[0], "mid": data[5][0], "fid": data[5][1], "pid": data[6][0], "gender": data[8].lower(), "photo": "", "addr": "", "title": f"ID: {data[7]}"})
     # else:
 
