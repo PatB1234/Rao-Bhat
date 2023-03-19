@@ -97,7 +97,10 @@ class App:
         with self.driver.session() as session:
             
             jsonData = f'name: "{name}", gender: "{gender}", marraige: {married}, parents: ["{mid}", "{fid}"], marriedTo: ["{pid}"], place: "{place}"'
-            session = session.execute_write(self._run_command, "CREATE (p: Person {" + jsonData + "} )")
+            session = session.execute_write(self._run_command, "CREATE (p: Person {" + jsonData + "}) RETURN ID(p) AS id")
+            for line in session:
+
+                return line["id"]
 
     def married(self, command) :
 
@@ -117,7 +120,7 @@ def edit_node(ids, gender, name, marriedTo, mid, fid, place, marraige):
 
 def add_human(name, mid, fid, pid, gender, married, place):
 
-    driver.add_member(name, mid, fid, pid, gender, married, place)
+    return driver.add_member(name, mid, fid, pid, gender, married, place)
 
 def get_tree():
 

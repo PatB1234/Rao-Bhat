@@ -69,7 +69,8 @@ def add_member(name: str = Form(...), mid: int = Form(...), fid: int = Form(...)
                     #, "Born": data[1], "Place": data[3], "Marraige": data[4] 
                     pass
 
-        return db.add_human(name, tMid, tFid, tPid, gender, married, place)
+        id = db.add_human(name, tMid, tFid, tPid, gender, married, place)
+        return HTMLResponse(content=f"<p>User created, the id of it is {id}.<p>", status_code=200)
 
 @app.post("/edit_node")
 def edit_node(ids: int = Form(...), name: str = Form(...), mid: int = Form(...), fid: int = Form(...), pid: int = Form(...), married: bool = Form(False), gender: str = Form(...), place: str = Form(...)):
@@ -103,4 +104,6 @@ def edit_node(ids: int = Form(...), name: str = Form(...), mid: int = Form(...),
                     #, "Born": data[1], "Place": data[3], "Marraige": data[4] 
                     pass
 
-        return db.edit_node(ids, gender, name, tPid, tMid, tFid, place, married)
+        db.edit_node(ids, gender, name, tPid, tMid, tFid, place, married)
+        return HTMLResponse(content=f"<p>Edit successful!", status_code=200)
+
