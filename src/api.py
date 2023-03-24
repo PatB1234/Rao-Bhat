@@ -37,6 +37,10 @@ def get_tree():
      
     return db.get_tree()
 
+@app.get("/search")
+def get_search(request: Request):
+     
+     return templates.TemplateResponse("search.html", {"request": request})
 @app.post("/add_member")
 def add_member(name: str = Form(...), mid: int = Form(...), fid: int = Form(...), pid: int = Form(...), married: bool = Form(False), gender: str = Form(...), place: str = Form(...)):
 
@@ -105,5 +109,10 @@ def edit_node(ids: int = Form(...), name: str = Form(...), mid: int = Form(...),
                     pass
 
         db.edit_node(ids, gender, name, tPid, tMid, tFid, place, married)
-        return HTMLResponse(content=f"<p>Edit successful!", status_code=200)
+        return HTMLResponse(content=f"<p>Edit successful!</p>", status_code=200)
 
+
+@app.post("/post_search/{name}")
+def post_search(name: str):
+     
+    print(name)
