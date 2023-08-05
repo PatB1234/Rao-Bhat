@@ -13,7 +13,7 @@ class User(BaseModel):
     age: int
     birthday: str
     deathDate: str
-    pids: list[int] = []
+    pids: str
     mid: int
     fid: int
 
@@ -26,13 +26,12 @@ def create_tables():
         "CREATE TABLE IF NOT EXISTS users (uid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INT, birthday TEXT, deathDate TEXT, pids VARCHAR, mid INT, fid INT);")
 
 
-def create_user(name: str, age: str, birthday: str, deathDate: str, pids: list[int], mid: int, fid: int):
+def create_user(name: str, age: str, birthday: str, deathDate: str, pids: str, mid: int, fid: int):
 
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
-    arr = ','.join([str(x) for x in pids])
     cursor.execute(
-        f"INSERT INTO users (name, age, birthday, deathDate, pids, mid, fid) VALUES ('{name}', '{age}', '{birthday}', '{deathDate}', '{arr}', '{mid}', '{fid}');")
+        f"INSERT INTO users (name, age, birthday, deathDate, pids, mid, fid) VALUES ('{name}', '{age}', '{birthday}', '{deathDate}', '{pids}', '{mid}', '{fid}');")
 
     database.commit()
 
@@ -47,9 +46,8 @@ def get_all_users():
     userForm = []
 
     for user in users:
-        string = user[5].split(',')
         userForm.append(User(uid=user[0], name=user[1], age=user[2], birthday=user[3],
-                        deathDate=user[4], pids=string, mid=user[6], fid=user[7]))
+                        deathDate=user[4], pids=user[5], mid=user[6], fid=user[7]))
     return userForm
 
 
@@ -87,12 +85,12 @@ def update_deathDate(deathDate: str, uid: int):
     database.commit()
 
 
-def update_pids(pids: list[int], uid: int):
+def update_pids(pids: str, uid: int):
 
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
     cursor.execute(
-        f"UPDATE users SET pids = '{','.join([str(x) for x in pids])}' WHERE uid = {uid};")
+        f"UPDATE users SET pids = '{pids}' WHERE uid = {uid};")
     database.commit()
 
 
