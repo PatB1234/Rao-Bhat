@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+</head>
+
+<body>
+
+    <label>Search for a user: </label>
+    <br />
+    <input type="text" class="form-control" id="search">
+    <br />
+    <button class="w-100 btn btn-lg btn-primary" onclick="post_search()">Search</button>
+    <ul id="list">
+
+
+    </ul>
+
+    <script>
+        var jsonData = []
+        function post_search(event) {
+            axios.get('/get_tree')
+                .then(function (response) {
+                    for (let i = 0; i < response.data.length; i++) {
+
+                        datar = response.data[i]
+
+                        var trueMarried = parseInt(datar.fid)
+                        var trueParents = [parseInt(datar.mid), parseInt(datar.fid)]
+                        console.log(trueMarried, trueParents, datar);
+
+                        if (datar.name == document.getElementById("search").value) {
+
+                            var married = "Married to no one"
+                            var parents = "No Parents"
+
+                            var trueMarried = parseInt(datar.pid)
+                            var trueParents = [parseInt(datar.mid), parseInt(datar.fid)]
+
+                            if (trueMarried != NaN) {
+
+                                for (let j = 0; j < response.data.length; j++) {
+
+                                    if (response.data[j].id == trueMarried) {
+
+                                        married = `Married to: ${response.data[j].name}`
+                                    }
+                                }
+                            }
+
+                            if (trueParents[0] != NaN) {
+
+                                for (let j = 0; j < response.data.length; j++) {
+
+                                    if (response.data[j].id == trueParents[0]) {
+
+                                        if (parents == "No Parents") {
+
+                                            parents = `Fathers Name is: ${response.data[j].name} `
+
+                                        } else {
+
+                                            parents = parents + `Fathers Name is: ${response.data[j].name} `
+
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (trueParents[1] != NaN) {
+
+                                for (let j = 0; j < response.data.length; j++) {
+
+                                    if (response.data[j].id == trueParents[1]) {
+
+                                        if (parents == "No Parents") {
+
+                                            parents = `Mothers Name is: ${response.data[j].name} `
+
+                                        } else {
+
+                                            parents = parents + `Mothers Name is: ${response.data[j].name} `
+
+                                        }
+                                    }
+                                }
+                            }
+                            jsonData.push([datar.name, married, parents]);
+                        }
+
+
+                        document.getElementById("list").innerHTML = jsonData.map(e => {
+                            return `<li>${e[0]}, ${e[1]}, ${e[2]}</li>`
+                        }).join("\n");
+                    }
+                })
+
+                .catch(function (error) {
+
+                    console.log(error);
+                })
+
+        }
+    </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+</body>
+
+</html>
