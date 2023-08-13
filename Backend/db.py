@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 import os
 import sqlite3 as driver
+from sqlite3.dbapi2 import Cursor
 
-
-DATABASE_URL = 'Backend/db/users.db'
+DATABASE_URL = 'db/users.db'
 
 
 class User(BaseModel):
@@ -26,7 +26,7 @@ def create_tables():
         "CREATE TABLE IF NOT EXISTS users (uid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INT, birthday TEXT, deathDate TEXT, pids VARCHAR, mid INT, fid INT);")
 
 
-def create_user(name: str, age: str, birthday: str, deathDate: str, pids: str, mid: int, fid: int):
+def create_user(name: str, age: int, birthday: str, deathDate: str, pids: str, mid: int, fid: int):
 
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
