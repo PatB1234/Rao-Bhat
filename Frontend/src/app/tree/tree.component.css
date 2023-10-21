@@ -1,0 +1,10 @@
+.blurred rect,
+.blurred image,
+.blurred text,
+.blurred use {
+  filter: blur(5px);
+}
+
+.selected rect {
+  fill: #FFCA28 !important;
+}
