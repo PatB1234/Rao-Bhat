@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from db import *
 
@@ -44,9 +45,22 @@ def get_users():
 
 
 @app.post("/update_full")
-def post_update_full(user: User):
+def post_update_full(user: User2):
 
     update_full(user)
+
+
+@app.post("/check_data")
+def check_data_front(user: User2):
+
+    res = check_data(user)
+    if (len(res) == 1):
+
+        update_full(convert_to_id(user))
+        return JSONResponse(content=True)
+    else:
+
+        return JSONResponse(content=res)
 
 
 @app.post("/update_name")

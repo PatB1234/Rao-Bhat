@@ -1,27 +1,4 @@
-import { Component } from '@angular/core';
-import FamilyTree from "@balkangraph/familytree.js";
-import { HttpSerivceService } from '../http-serivce.service';
-@Component({
-  selector: 'app-tree',
-  templateUrl: './tree.component.html',
-  styleUrls: ['./tree.component.css']
-})
-
-
-
-export class TreeComponent {
-
-  title = 'Rao Bhat';
-  constructor(private httpService: HttpSerivceService) { }
-  async ngOnInit() {
-
-
-    let users: any;
-    await this.httpService.getUsers().subscribe(
-      (response) => {
-        users = response
-        let newUsers: any = []
-        for (let i = 0; i < users.length; i++) {
+for (let i = 0; i < users.length; i++) {
 
           let base = users[i];
           let Mother = base.Mother;
@@ -97,47 +74,3 @@ export class TreeComponent {
 
           }
         }
-        const tree = document.getElementById('tree');
-        if (tree) {
-          var family = new FamilyTree(tree, {
-            nodeBinding: {
-              field_0: "name"
-            },
-          });
-          family.load(newUsers);
-          let focusedNodeId: any = 1;
-          family.onNodeClick((args) => {
-            console.log(args.node.id)
-            focusedNodeId = args.node.id;
-            family.draw()
-          });
-
-          family.onUpdateNode((args) => {
-
-            //console.log(args);
-            let updateData: any = args['updateNodesData'][0];
-            let originalData;
-            for (let i = 0; i < users.length; i++) {
-
-              if (users[i].id == updateData['id']) {
-
-                originalData = users[i];
-              }
-            }
-            delete updateData.gender;
-
-            this.httpService.editUser(updateData).subscribe((updateData) => {
-
-              console.warn(`WARNING DATA IS BEING POSTED!`)
-            })
-            console.log(originalData);
-            console.log(updateData);
-            family.draw();
-          });
-
-
-        }
-      },
-      (error) => { console.log(error); });
-  }
-}
