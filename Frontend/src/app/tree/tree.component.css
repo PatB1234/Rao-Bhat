@@ -8,3 +8,11 @@
 .selected rect {
   fill: #FFCA28 !important;
 }
+
+button,
+p {
+  display: inline-block;
+  vertical-align: middle;
+  white-space: 10px;
+  align-self: center;
+}

@@ -30,6 +30,12 @@ class User2(BaseModel):
     Father: str = ""
 
 
+class User3(BaseModel):
+
+    uid: int
+    newId: int
+
+
 def create_tables():
 
     database = driver.connect(DATABASE_URL)
@@ -78,51 +84,80 @@ def get_users_by_name(name):
     arr = []
     users = get_all_users()
     for i in users:
-
         if i.name == name:
 
             arr.append(i)
 
+    return arr
+
 
 def check_data(user: User):
     fields_with_conflict = {'uid': user.id}
-    if (user['Father'] != ""):
+    if (user.Father != ""):
 
-        fathers = get_users_by_name(user['Father'])
+        fathers = get_users_by_name(user.Father)
         if len(fathers) != 1:
 
+            if 'Father' not in fields_with_conflict.keys():
+
+                fields_with_conflict['Father'] = []
             fields_with_conflict['Father'].append(fathers)
 
-    if (user['Mother'] != ""):
+    if (user.Mother != ""):
 
-        Mothers = get_users_by_name(user['Mother'])
+        Mothers = get_users_by_name(user.Mother)
         if len(Mothers) != 1:
 
+            if 'Mother' not in fields_with_conflict.keys():
+
+                fields_with_conflict['Mother'] = []
             fields_with_conflict['Mother'].append(Mothers)
+        if len(Mothers) == 1:
 
-    if (user['Spouse'] != ""):
+            update_Mother(User3(uid=user.id, newId=Mothers[0].id))
 
-        Spouses = get_users_by_name(user['Spouse'])
-        if len(fathers) != 1:
+    if (user.Spouse != ""):
+        Spouses = get_users_by_name(user.Spouse)
+        if len(Spouses) != 1:
+            if 'Spouse' not in fields_with_conflict.keys():
 
+                fields_with_conflict['Spouse'] = []
             fields_with_conflict['Spouse'].append(Spouses)
+
+        if len(Spouses) == 1:
+
+            update_spouse(User3(uid=user.id, newId=Spouses[0].id))
 
     return fields_with_conflict
 
 
 def convert_to_id(user: User2):
 
-    newUser = User(id=user.id, name=user.name, age=user.name, Birthday=user.Birthday,
-                   DeathDate=user.DeathDate, Spouse=user.Spouse, Mother=user.Mother, Father=user.Father)
+    Spouse = ""
+    Mother = ""
+    Father = ""
     if (user.Spouse != ""):
 
-        newUser.Spouse = int(get_users_by_name(user.Spouse).id)
+        Spouse = int(get_users_by_name(user.Spouse)[0].id)
+
     if (user.Mother != ""):
 
-        newUser.Mother = int(get_users_by_name(user.Mother).id)
+        Mother = int(get_users_by_name(user.Mother)[0].id)
     if (user.Father != ""):
 
-        newUser.Father = int(get_users_by_name(user.Father).id)
+        Father = int(get_users_by_name(user.Father)[0].id)
+    if (type(Spouse) != int):
+
+        Spouse = 0
+    if (type(Mother) != int):
+
+        Mother = 0
+    if (type(Father) != int):
+
+        Father = 0
+
+    newUser = User(id=user.id, name=user.name, age=user.age, Birthday=user.Birthday,
+                   DeathDate=user.DeathDate, Spouse=[Spouse], Mother=Mother, Father=Father)
     return newUser
 
 
@@ -131,9 +166,8 @@ def update_full(user: User):
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
     cursor.execute(
-        f"UPDATE users SET name = '{user.name}', age = {int(user.age)}, Birthday = '{user.Birthday}', DeathDate = '{user.DeathDate}', Spouse = '{user.Spouse}', Mother = {int(user.Mother)}, Father = {int(user.Father)} WHERE uid = {user.id};")
+        f"UPDATE users SET name = '{user.name}', age = {int(user.age)}, Birthday = '{user.Birthday}', DeathDate = '{user.DeathDate}', Spouse = '{user.Spouse[0]}', Mother = {int(user.Mother)}, Father = {int(user.Father)} WHERE uid = {user.id};")
     database.commit()
-    print(user)
 
 
 def update_name(name: str, uid: int):
@@ -170,30 +204,52 @@ def update_DeathDate(DeathDate: str, uid: int):
     database.commit()
 
 
-def update_Spouse(Spouse: str, uid: int):
+def get_user_by_id(id: int):
+
+    arr = []
+    users = get_all_users()
+    for i in users:
+        if i.id == id:
+
+            arr.append(i)
+
+    return arr
+
+
+def update_spouse(user: User3):
 
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
+    userModel = get_user_by_id(user.uid)[0]
+    oldSpouseData = get_user_by_id(userModel.Spouse[0])
+    newSpouseData = get_user_by_id(user.newId)[0]
+    if oldSpouseData != []:
+
+        oldSpouseData = get_user_by_id(userModel.Spouse[0])[0]
+        cursor.execute(
+            f"UPDATE users SET Spouse = 0 WHERE uid = {oldSpouseData.id};")
     cursor.execute(
-        f"UPDATE users SET Spouse = '{Spouse}' WHERE uid = {uid};")
+        f"UPDATE users SET Spouse = {user.uid} WHERE uid = {newSpouseData.id};")
+    cursor.execute(
+        f"UPDATE users SET Spouse = {user.newId} WHERE uid = {user.uid};")
     database.commit()
 
 
-def update_Mother(Mother: int, uid: int):
+def update_Mother(user: User3):
 
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
     cursor.execute(
-        f"UPDATE users SET Mother = '{Mother}' WHERE uid = '{uid}';")
+        f"UPDATE users SET Mother = {user.newId} WHERE uid = '{user.uid}';")
     database.commit()
 
 
-def update_Father(Father: int, uid: int):
+def update_Father(user: User3):
 
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
     cursor.execute(
-        f"UPDATE users SET Father = '{Father}' WHERE uid = '{uid}';")
+        f"UPDATE users SET Father = {user.newId} WHERE uid = '{user.uid}';")
     database.commit()
 
 
@@ -202,4 +258,14 @@ def remove_user(uid: int):
     database = driver.connect(DATABASE_URL)
     cursor = database.cursor()
     cursor.execute(f"DELETE FROM users WHERE uid = '{uid}'")
+    database.commit()
+
+
+def add_member():
+
+    database = driver.connect(DATABASE_URL)
+    cursor = database.cursor()
+    cursor.execute(
+        f"INSERT INTO users (name, age, Birthday, DeathDate, Spouse, Mother, Father) VALUES ('.', 0, '.', '.', '0', '0', '0');")
+
     database.commit()

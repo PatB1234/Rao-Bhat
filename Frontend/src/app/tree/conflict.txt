@@ -1,0 +1,17 @@
+if (res['Spouse'] != null) {
+
+                  let spouseData: any = res['Spouse'][0]
+                  let data = { uid: res['uid'], newID: parseInt(spouseData[0]['id']) }
+                }
+
+                if (res['Mother'] != null) {
+
+                  let motherData: any = res['Mother'][0]
+                  let data = { uid: res['uid'], newID: parseInt(motherData[0]['id']) }
+                }
+
+                if (res['Father'] != null) {
+
+                  let fatherData: any = res['Father'][0]
+                  let data = { uid: res['uid'], newID: parseInt(fatherData[0]['id']) }
+                }

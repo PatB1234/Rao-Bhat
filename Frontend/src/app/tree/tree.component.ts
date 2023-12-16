@@ -10,9 +10,16 @@ import { HttpSerivceService } from '../http-serivce.service';
 
 
 export class TreeComponent {
+  addMember() {
+    let updateData: any = ""
+    this.httpService.add_member(updateData).subscribe(() => {
+
+    })
+  }
 
   title = 'Rao Bhat';
   constructor(private httpService: HttpSerivceService) { }
+
   async ngOnInit() {
 
 
@@ -107,14 +114,12 @@ export class TreeComponent {
           family.load(newUsers);
           let focusedNodeId: any = 1;
           family.onNodeClick((args) => {
-            console.log(args.node.id)
             focusedNodeId = args.node.id;
             family.draw()
           });
 
           family.onUpdateNode((args) => {
 
-            //console.log(args);
             let updateData: any = args['updateNodesData'][0];
             let originalData;
             for (let i = 0; i < users.length; i++) {
@@ -126,12 +131,103 @@ export class TreeComponent {
             }
             delete updateData.gender;
 
-            this.httpService.editUser(updateData).subscribe((updateData) => {
+            this.httpService.checkData(updateData).subscribe((res) => {
+              let correctSpouseid: any = -1;
+              let correctMotherid: any = -1;
+              let correctFatherid: any = -1;
+              let uid = res['uid'];
+              if (res['Spouse'] != null) {
 
-              console.warn(`WARNING DATA IS BEING POSTED!`)
+                let spouseData: any = res['Spouse'][0]
+                correctSpouseid = parseInt(spouseData[0]['id']);
+              }
+
+              if (res['Mother'] != null) {
+
+                let motherData: any = res['Mother'][0]
+                correctMotherid = parseInt(motherData[0]['id']);
+              }
+
+              if (res['Father'] != null) {
+
+                let fatherData: any = res['Father'][0]
+                correctFatherid = parseInt(fatherData[0]['id']);
+              }
+              if (res == true) {
+
+
+              } else {
+
+
+                if (res['Spouse'] != null) {
+
+                  let spouseData: any = res['Spouse'][0]
+                  let promptText: string = "Please choose the correct Spouse for this user by typing the number associated with the user \n"
+                  for (let i = 0; i < res['Spouse'][0].length; i++) {
+
+                    promptText += `${spouseData[i]['id']}. Name: ${spouseData[i]['name']}, DOB: ${spouseData[i]['Birthday']}\n`
+                  }
+                  correctSpouseid = prompt(promptText);
+                  correctSpouseid = parseInt(correctSpouseid);
+                }
+
+                if (res['Mother'] != null) {
+
+                  let motherData: any = res['Mother'][0]
+
+                  let promptText: string = "Please choose the correct Mother for this user by typing the number associated with the user \n"
+                  for (let i = 0; i < res['Mother'][0].length; i++) {
+
+                    promptText += `${motherData[i]['id']}. Name: ${motherData[i]['name']}, DOB: ${motherData[i]['Birthday']}\n`
+                  }
+                  correctMotherid = prompt(promptText);
+                  correctMotherid = parseInt(correctMotherid);
+                }
+
+                if (res['Father'] != null) {
+
+                  let fatherData: any = res['Father'][0]
+
+                  let promptText: string = "Please choose the correct Father for this user by typing the number associated with the user \n"
+                  for (let i = 0; i < res['Father'][0].length; i++) {
+
+                    promptText += `${fatherData[i]['id']}. Name: ${fatherData[i]['name']}, DOB: ${fatherData[i]['Birthday']}\n`
+                  }
+                  correctFatherid = prompt(promptText);
+                  correctFatherid = parseInt(correctFatherid);
+                }
+              }
+              if (correctSpouseid != -1) {
+                let newData: any = { uid: uid, newId: correctSpouseid }
+                this.httpService.updateSpouse(newData).subscribe((newData) => {
+
+                })
+              }
+              if (correctMotherid != -1) {
+                let newData: any = { uid: uid, newId: correctMotherid }
+
+                this.httpService.updateMother(newData).subscribe((newData) => {
+
+                })
+              }
+
+              if (correctFatherid != -1) {
+
+                let newData: any = { uid: uid, newId: correctFatherid }
+                this.httpService.updateFather(newData).subscribe((newData) => {
+
+                })
+              }
             })
-            console.log(originalData);
-            console.log(updateData);
+
+
+            function addMember(this: any) {
+
+              this.httpService.add_member(updateData).subscribe(() => {
+
+              })
+            }
+
             family.draw();
           });
 

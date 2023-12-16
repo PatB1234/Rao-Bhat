@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi import status, Form
 from fastapi.param_functions import Depends
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Json
 from starlette.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
@@ -59,8 +59,7 @@ def check_data_front(user: User2):
         update_full(convert_to_id(user))
         return JSONResponse(content=True)
     else:
-
-        return JSONResponse(content=res)
+        return res
 
 
 @app.post("/update_name")
@@ -87,25 +86,31 @@ def post_update_DeathDate(DeathDate: str = Form(...), uid: int = Form(...)):
     update_DeathDate(DeathDate, uid)
 
 
-@app.post("/update_pids")
-def post_update_pids(pids: str = Form(...), uid: int = Form(...)):
+@app.post("/update_spouse")
+def post_update_spouse(user: User3):
 
-    update_pids(pids, uid)
+    update_spouse(user)
 
 
 @app.post("/update_Mother")
-def post_update_Mother(Mother: int = Form(...), uid: int = Form(...)):
+def post_update_Mother(user: User3):
 
-    update_Mother(Mother, uid)
+    update_Mother(user)
 
 
 @app.post("/update_Father")
-def post_update_Father(Father: int = Form(...), uid: int = Form(...)):
+def post_update_Father(user: User3):
 
-    update_Father(Father, uid)
+    update_Father(user)
 
 
 @app.post("/remove_user")
 def post_remove_user(uid: int = Form(...)):
 
     remove_user(uid)
+
+
+@app.post("/add_member")
+def post_add_member():
+
+    add_member()

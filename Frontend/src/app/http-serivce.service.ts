@@ -25,4 +25,35 @@ export class HttpSerivceService {
       return res
     }))
   }
+
+  updateSpouse(data: any) {
+
+    return this.http.post(this.URL + '/update_spouse', data).pipe(map((res: any) => {
+
+      return res
+    }))
+  }
+
+  updateMother(data: any) {
+
+    return this.http.post(this.URL + '/update_Mother', data).pipe(map((res: any) => {
+
+      return res
+    }))
+  }
+  updateFather(data: any) {
+
+    return this.http.post(this.URL + '/update_Father', data).pipe(map((res: any) => {
+
+      return res
+    }))
+  }
+
+  add_member(data: any) {
+
+    return this.http.post(this.URL + "/add_member", data).pipe(map((res: any) => {
+
+      return res
+    }))
+  }
 }
