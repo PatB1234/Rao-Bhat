@@ -2,11 +2,11 @@ from fastapi import FastAPI
 from fastapi import status, Form
 from fastapi.param_functions import Depends
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Json
+from pydantic import Json
 from starlette.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from models import *
 from db import *
 
 app = FastAPI()
@@ -60,6 +60,14 @@ def check_data_front(user: User2):
         return JSONResponse(content=True)
     else:
         return res
+
+# Update the values that are not updated when the Error checking software is run in the front end
+
+
+@app.post("/update_rest")
+def post_update_rest(user: User4):
+
+    update_rest(user)
 
 
 @app.post("/update_name")

@@ -49,6 +49,14 @@ export class HttpSerivceService {
     }))
   }
 
+  updateRest(data: any) {
+
+    return this.http.post(this.URL + '/update_rest', data).pipe(map((res: any) => {
+
+      return res;
+    }))
+  }
+
   add_member(data: any) {
 
     return this.http.post(this.URL + "/add_member", data).pipe(map((res: any) => {

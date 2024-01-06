@@ -1,66 +1,40 @@
-from pydantic import BaseModel
-import os
 import sqlite3 as driver
 from sqlite3.dbapi2 import Cursor
-
+from models import *
 DATABASE_URL = 'db/users.db'
 
 
-class User(BaseModel):
+def cursor_func(function, fetch):
 
-    id: int
-    name: str
-    age: int
-    Birthday: str
-    DeathDate: str = 0
-    Spouse: list[int] = 0
-    Mother: int = 0
-    Father: int = 0
+    database = driver.connect(DATABASE_URL)
+    cursor = database.cursor()
+    try:
 
+        cursor.execute(function)
+        if (fetch):
+            records = cursor.fetchall()
+            return records
 
-class User2(BaseModel):
+        database.commit()
+    except:
 
-    id: int
-    name: str
-    age: int
-    Birthday: str
-    DeathDate: str = ""
-    Spouse: str = ""
-    Mother: str = ""
-    Father: str = ""
-
-
-class User3(BaseModel):
-
-    uid: int
-    newId: int
+        database.rollback()
 
 
 def create_tables():
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        "CREATE TABLE IF NOT EXISTS users (uid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INT, Birthday TEXT, DeathDate TEXT, Spouse VARCHAR, Mother INT, Father INT);")
+    cursor_func("CREATE TABLE IF NOT EXISTS users (uid INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INT, Birthday TEXT, DeathDate TEXT, Spouse VARCHAR, Mother INT, Father INT);", False)
 
 
 def create_user(name: str, age: int, Birthday: str, DeathDate: str, Spouse: str, Mother: int, Father: int):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"INSERT INTO users (name, age, Birthday, DeathDate, Spouse, Mother, Father) VALUES ('{name}', '{age}', '{Birthday}', '{DeathDate}', '{Spouse}', '{Mother}', '{Father}');")
-
-    database.commit()
+    cursor_func(
+        f"INSERT INTO users (name, age, Birthday, DeathDate, Spouse, Mother, Father) VALUES ('{name}', '{age}', '{Birthday}', '{DeathDate}', '{Spouse}', '{Mother}', '{Father}');", False)
 
 
 def get_all_users():
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute('SELECT * FROM users')
-    users = cursor.fetchall()
-    database.commit()
+    users = cursor_func('SELECT * FROM users', True)
     userForm = []
 
     for user in users:
@@ -163,45 +137,30 @@ def convert_to_id(user: User2):
 
 def update_full(user: User):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"UPDATE users SET name = '{user.name}', age = {int(user.age)}, Birthday = '{user.Birthday}', DeathDate = '{user.DeathDate}', Spouse = '{user.Spouse[0]}', Mother = {int(user.Mother)}, Father = {int(user.Father)} WHERE uid = {user.id};")
-    database.commit()
+    cursor_func(
+        f"UPDATE users SET name = '{user.name}', age = {int(user.age)}, Birthday = '{user.Birthday}', DeathDate = '{user.DeathDate}', Spouse = '{user.Spouse[0]}', Mother = {int(user.Mother)}, Father = {int(user.Father)} WHERE uid = {user.id};", False)
 
 
 def update_name(name: str, uid: int):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(f"UPDATE users SET name = '{name}' WHERE uid = {uid};")
-    database.commit()
+    cursor_func(f"UPDATE users SET name = '{name}' WHERE uid = {uid};", False)
 
 
 def update_age(age: int, uid: int):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(f"UPDATE users SET age = {age} WHERE uid = {uid};")
-    database.commit()
+    cursor_func(f"UPDATE users SET age = {age} WHERE uid = {uid};", False)
 
 
 def update_Birthday(Birthday: str, uid: int):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"UPDATE users SET Birthday = '{Birthday}' WHERE uid = {uid};")
-    database.commit()
+    cursor_func(
+        f"UPDATE users SET Birthday = '{Birthday}' WHERE uid = {uid};", False)
 
 
 def update_DeathDate(DeathDate: str, uid: int):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"UPDATE users SET DeathDate = '{DeathDate}' WHERE uid = {uid};")
-    database.commit()
+    cursor_func(
+        f"UPDATE users SET DeathDate = '{DeathDate}' WHERE uid = {uid};", False)
 
 
 def get_user_by_id(id: int):
@@ -218,54 +177,46 @@ def get_user_by_id(id: int):
 
 def update_spouse(user: User3):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
     userModel = get_user_by_id(user.uid)[0]
     oldSpouseData = get_user_by_id(userModel.Spouse[0])
     newSpouseData = get_user_by_id(user.newId)[0]
     if oldSpouseData != []:
 
         oldSpouseData = get_user_by_id(userModel.Spouse[0])[0]
-        cursor.execute(
-            f"UPDATE users SET Spouse = 0 WHERE uid = {oldSpouseData.id};")
-    cursor.execute(
-        f"UPDATE users SET Spouse = {user.uid} WHERE uid = {newSpouseData.id};")
-    cursor.execute(
-        f"UPDATE users SET Spouse = {user.newId} WHERE uid = {user.uid};")
-    database.commit()
+        cursor_func(
+            f"UPDATE users SET Spouse = 0 WHERE uid = {oldSpouseData.id};", False)
+    cursor_func(
+        f"UPDATE users SET Spouse = {user.uid} WHERE uid = {newSpouseData.id};", False)
+    cursor_func(
+        f"UPDATE users SET Spouse = {user.newId} WHERE uid = {user.uid};", False)
+
+
+# Update the values that are not updated when the Error checking software is run in the front end
+
+
+def update_rest(user: User4):
+
+    cursor_func(
+        f"UPDATE users SET name = '{user.name}', age = {user.age}, Birthday = '{user.Birthday}', DeathDate = '{user.DeathDate}' WHERE uid ={user.uid};", False)
 
 
 def update_Mother(user: User3):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"UPDATE users SET Mother = {user.newId} WHERE uid = '{user.uid}';")
-    database.commit()
+    cursor_func(
+        f"UPDATE users SET Mother = {user.newId} WHERE uid = '{user.uid}';", False)
 
 
 def update_Father(user: User3):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"UPDATE users SET Father = {user.newId} WHERE uid = '{user.uid}';")
-    database.commit()
+    cursor_func(
+        f"UPDATE users SET Father = {user.newId} WHERE uid = '{user.uid}';", False)
 
 
 def remove_user(uid: int):
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(f"DELETE FROM users WHERE uid = '{uid}'")
-    database.commit()
+    cursor_func(f"DELETE FROM users WHERE uid = '{uid}'", False)
 
 
 def add_member():
 
-    database = driver.connect(DATABASE_URL)
-    cursor = database.cursor()
-    cursor.execute(
-        f"INSERT INTO users (name, age, Birthday, DeathDate, Spouse, Mother, Father) VALUES ('.', 0, '.', '.', '0', '0', '0');")
-
-    database.commit()
+    cursor_func(f"INSERT INTO users (name, age, Birthday, DeathDate, Spouse, Mother, Father) VALUES ('.', 0, '.', '.', '0', '0', '0');", False)

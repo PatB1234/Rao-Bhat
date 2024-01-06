@@ -130,7 +130,6 @@ export class TreeComponent {
               }
             }
             delete updateData.gender;
-
             this.httpService.checkData(updateData).subscribe((res) => {
               let correctSpouseid: any = -1;
               let correctMotherid: any = -1;
@@ -197,6 +196,8 @@ export class TreeComponent {
                   correctFatherid = parseInt(correctFatherid);
                 }
               }
+              // Check if there has been any changes to the fields of Spouse, Mother and Father
+              // If there has been changes, the data is commited to the database by a post request viua angular http
               if (correctSpouseid != -1) {
                 let newData: any = { uid: uid, newId: correctSpouseid }
                 this.httpService.updateSpouse(newData).subscribe((newData) => {
@@ -218,7 +219,14 @@ export class TreeComponent {
 
                 })
               }
+              // Send the values that could potentially have been changed but do not cause problems if they have been changend
+              let updateRestData: any = { uid: updateData.id, name: updateData.name, age: updateData.age, Birthday: updateData.Birthday, DeathDate: updateData.DeathDate };
+              this.httpService.updateRest(updateRestData).subscribe((updateRestData) => {
+
+
+              })
             })
+
 
 
             function addMember(this: any) {
@@ -229,6 +237,7 @@ export class TreeComponent {
             }
 
             family.draw();
+
           });
 
 
