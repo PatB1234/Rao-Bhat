@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi import status, Form
 from fastapi.param_functions import Depends
 from fastapi.staticfiles import StaticFiles
-from pydantic import Json
 from starlette.responses import RedirectResponse
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware

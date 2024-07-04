@@ -14,7 +14,10 @@ export class TreeComponent {
     let updateData: any = ""
     this.httpService.add_member(updateData).subscribe(() => {
 
+
     })
+    window.location.reload();
+
   }
 
   title = 'Rao Bhat';
